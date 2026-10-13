@@ -126,6 +126,12 @@ impl Default for NfsOptions {
             opts.insert("intr".into(), "".into());
             opts.insert("timeo".into(), "100".into()); // tenths of a second → 10s per try
             opts.insert("retrans".into(), "3".into());
+
+            // Tối ưu hóa hiệu suất truyền dữ liệu (P0)
+            opts.insert("rsize".into(), "1048576".into()); // 1 MiB read buffer
+            opts.insert("wsize".into(), "1048576".into()); // 1 MiB write buffer
+            opts.insert("readahead".into(), "128".into()); // Tăng khối đọc trước
+            opts.insert("tcp".into(), "".into());
         }
         opts.insert(LOCAL_LOCK_KEY.into(), LOCAL_LOCK_VALUE.into());
         opts.insert("vers".into(), "3".into());

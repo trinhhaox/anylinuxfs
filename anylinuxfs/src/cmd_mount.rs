@@ -542,6 +542,11 @@ pub(crate) fn claim_devices(
 
     if let Some(fs_driver) = &config.fs_driver {
         mnt_dev_info.set_fs_driver(&fs_driver);
+    } else if mnt_dev_info.fs_type() == Some("ntfs") {
+        host_println!(
+            "Tự động ưu tiên kernel driver ntfs3 cho phân vùng NTFS để đạt hiệu suất cao"
+        );
+        mnt_dev_info.set_fs_driver("ntfs3");
     };
 
     if config.kernel_page_size == Some(KernelPage::Size4K)
@@ -1138,6 +1143,20 @@ impl<'a> NfsShareSetup<'a> {
                     .code()
                     .map(|c| c.to_string())
                     .unwrap_or("unknown".to_owned())
+            );
+        }
+
+        #[cfg(target_os = "macos")]
+        if !self.config.read_only {
+            let mnt_path = Path::new(OsStr::from_bytes(mount_point.as_bytes()));
+            let uid = self.config.common.privilege.invoker_uid;
+            let trashes_dir = mnt_path.join(".Trashes");
+            let user_trash = trashes_dir.join(uid.to_string());
+            let _ = fs::create_dir_all(&user_trash);
+            let _ = privilege::chown_to_invoker(
+                &user_trash,
+                self.config.common.privilege.invoker_uid,
+                self.config.common.privilege.invoker_gid,
             );
         }
 
